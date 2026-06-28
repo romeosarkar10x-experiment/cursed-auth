@@ -1,4 +1,6 @@
 {
+    "name": "cursed-auth",
+    "author": "Romeo Sarkar",
     "type": "module",
     "scripts": {
         "format:check": "prettier \"**/*.{ts,tsx,css,json,yml,yaml,md}\" --check --debug-check --ignore-path .prettierignore",
