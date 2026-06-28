@@ -4,13 +4,15 @@
     "type": "module",
     "scripts": {
         "format:check": "prettier \"**/*.{ts,tsx,css,json,yml,yaml,md}\" --check --debug-check --ignore-path .prettierignore",
-        "format": "prettier \"**/*.{ts,tsx,css,json,yml,yaml,md}\" --write --ignore-path .prettierignore"
+        "format": "prettier \"**/*.{ts,tsx,css,json,yml,yaml,md}\" --write --ignore-path .prettierignore",
+        "build": "node esbuild.ts"
     },
     "dependencies": {
         "playwright": "^1.52.0"
     },
     "devDependencies": {
         "@types/node": "^26.0.1",
+        "esbuild": "^0.28.1",
         "prettier": "^3.8.4",
         "typescript": "^6.0.3"
     }
