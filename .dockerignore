@@ -1,0 +1,5 @@
+/node_modules
+/.env
+
+/.nvim.lua
+/prettier.config.ts
