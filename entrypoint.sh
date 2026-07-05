@@ -1,24 +1,41 @@
 #! /bin/bash
 
-# 1. Virtual display
-Xvfb :99 -screen 0 1280x900x24 &
+export DISPLAY=:99
+Xvfb :99 -screen 0 1280x800x24 &
 sleep 1
 
-# 2. Window manager (so you can drag/resize)
 fluxbox &
 
-# 3. VNC server
-x11vnc -display :99 -nopw -forever -shared -rfbport 5900 &
+x11vnc -display :99 -nopw -forever -rfbport 5900 &
 
-# 4. noVNC web client
 websockify --web /usr/share/novnc 6080 localhost:5900 &
-sleep 1
 
-echo "============================================"
-echo "🔓 Open http://localhost:6080/vnc.html"
-echo "============================================"
+# Raw chromium — no automation framework
+CHROME_BIN=$(node -e "console.log(require('playwright').chromium.executablePath())")
 
-# 5. Launch browser and wait for login
-pnpm exec playwright install chromium --with-deps 2>/dev/null
+"$CHROME_BIN" \
+    --no-sandbox \
+    --kiosk \
+    --no-first-run \
+    --disable-infobars \
+    --disable-default-apps \
+    --force-dark-mode --enable-features=WebContentsForceDark \
+    --no-default-browser-check \
+    --user-data-dir=/tmp/chrome-profile \
+    "https://leetcode.com/accounts/login/" &
 
-node dist/index.js
+echo "🌐 Open http://localhost:6080/vnc.html and log in"
+echo "⏳ Waiting for login..."
+
+# Poll for the session cookie in Chrome's sqlite DB
+while true; do
+    sleep 5
+    if sqlite3 /tmp/chrome-profile/Default/Cookies \
+        "SELECT value FROM cookies WHERE host_key='.leetcode.com' AND name='LEETCODE_SESSION'" 2>/dev/null | grep -q .; then
+        echo "✅ Login detected, extracting cookies..."
+        break
+    fi
+done
+
+# Extract cookies
+node dist/extract-cookies.js
