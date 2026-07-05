@@ -27,12 +27,25 @@ CHROME_BIN=$(node -e "console.log(require('playwright').chromium.executablePath(
 echo "🌐 Open http://localhost:6080/vnc.html and log in"
 echo "⏳ Waiting for login..."
 
-# Poll for the session cookie in Chrome's sqlite DB
+# Poll for the LEETCODE_SESSION cookie. NOTE: the `sqlite3` CLI is NOT installed
+# in this image — use better-sqlite3 (a project dependency) via node instead.
+# It opens the live DB read-only, which works fine while Chrome is running.
 while true; do
     sleep 5
-    if sqlite3 /tmp/chrome-profile/Default/Cookies \
-        "SELECT value FROM cookies WHERE host_key='.leetcode.com' AND name='LEETCODE_SESSION'" 2>/dev/null | grep -q .; then
+    if node -e '
+        const Database = require("better-sqlite3");
+        try {
+            const db = new Database("/tmp/chrome-profile/Default/Cookies", { readonly: true });
+            const row = db.prepare(
+                "SELECT 1 FROM cookies WHERE name = ? AND length(encrypted_value) > 0"
+            ).get("LEETCODE_SESSION");
+            process.exit(row ? 0 : 1);
+        } catch {
+            process.exit(1);
+        }
+    '; then
         echo "✅ Login detected, extracting cookies..."
+        sleep 3600
         break
     fi
 done
