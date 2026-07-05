@@ -12,6 +12,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN apt-get install -y novnc
 
+# ngrok agent — used by entrypoint.sh to expose noVNC (6080) with a public URL.
+RUN curl -sSLo /tmp/ngrok.tgz https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz \
+    && tar -xzf /tmp/ngrok.tgz -C /usr/local/bin \
+    && rm /tmp/ngrok.tgz \
+    && ngrok --version
+
 RUN rm -rf /var/lib/apt/lists/*
 
 RUN useradd -m x

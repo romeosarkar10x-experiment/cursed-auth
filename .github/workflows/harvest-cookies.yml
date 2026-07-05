@@ -1,0 +1,35 @@
+name: Harvest LeetCode cookies
+
+# Manual only — a human has to open the tunnel URL and log in.
+on:
+  workflow_dispatch:
+
+# Don't let two interactive sessions fight over the same tunnel.
+concurrency:
+  group: harvest-cookies
+  cancel-in-progress: false
+
+jobs:
+  harvest:
+    runs-on: ubuntu-latest
+    # Generous window for a human to notice the run, open the URL, and log in.
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t cursed-auth .
+
+      - name: Run auth container (streams the ngrok URL, then the cookies)
+        env:
+          NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+          VNC_PASSWORD: ${{ secrets.VNC_PASSWORD }}
+        run: |
+          # Foreground run: logs stream live, and the step ends when the
+          # container extracts the cookies and exits. The tunnel URL and the
+          # final cookies.json are printed to this log by entrypoint.sh.
+          docker run --rm \
+            -e NGROK_AUTH_TOKEN \
+            -e VNC_PASSWORD \
+            cursed-auth
